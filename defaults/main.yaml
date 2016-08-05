@@ -2,6 +2,11 @@
 
 # Package to be installed (you can force a specific version here)
 sssd_pkg: sssd
+sssd_conflict_pkgs: 
+  - nss-pam-ldapd
+sssd_conflict_services:
+  - nslcd
+  - nscd
 
 # Default sssd config (you probably want to overwrite this)
 sssd_config:
@@ -16,3 +21,5 @@ sssd_config:
     id_provider: local
     auth_provider: local
     access_provider: permit
+  
+sssd_config_pam: yes

@@ -5,6 +5,19 @@
     that: >
       ansible_os_family == "RedHat"
 
+- name: Remove any conflicting packages
+  yum:
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ sssd_conflict_pkgs }}"
+
+- name: Stop and disable conflicting services
+  services:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  with_items: "{{ sssd_conflict_services }}"
+
 - name: Install sssd package for RedHat
   yum:
     name: "{{ sssd_pkg }}"
@@ -41,3 +54,40 @@
     enabled: yes
   tags:
     - sssd_config
+
+- name: Set sss passwd nsswitch.conf
+  lineinfile:
+    dest: /etc/nsswitch.conf
+    line: "passwd:        files sss"
+    regexp: "^passwd:"
+    state: present
+
+- name: Set sss shadow nsswitch.conf
+  lineinfile:
+    dest: /etc/nsswitch.conf
+    line: "shadow:        files sss"
+    regexp: "^shadow:"
+    state: present
+
+- name: Set sss group nsswitch.conf
+  lineinfile:
+    dest: /etc/nsswitch.conf
+    line: "group:        files sss"
+    regexp: "^group:"
+    state: present
+
+- block:
+  - name: Add pam_sss to /etc/pam.d/password-auth
+    lineinfile:
+      dest: /etc/pam.d/password-auth
+      insertbefore: "^auth.*pam_unix.so"
+      regexp: "^auth.*pam_sss.so"
+      line: "auth        sufficient    pam_sss.so"
+
+  - name: Add pam_sss to /etc/pam.d/system-auth
+    lineinfile:
+      dest: /etc/pam.d/system-auth
+      insertbefore: "^auth.*pam_unix.so"
+      regexp: "^auth.*pam_sss.so"
+      line: "auth        sufficient    pam_sss.so"
+  when: sssd_config_pam
