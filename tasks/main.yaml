@@ -12,7 +12,7 @@
   with_items: "{{ sssd_conflict_pkgs }}"
 
 - name: Stop and disable conflicting services
-  services:
+  service:
     name: "{{ item }}"
     state: stopped
     enabled: no
