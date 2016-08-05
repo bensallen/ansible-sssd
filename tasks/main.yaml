@@ -16,7 +16,7 @@
     name: "{{ item }}"
     state: stopped
     enabled: no
-    ignore_errors: yes
+  ignore_errors: yes
   with_items: "{{ sssd_conflict_services }}"
 
 - name: Install sssd package for RedHat
