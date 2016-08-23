@@ -22,4 +22,5 @@ sssd_config:
     auth_provider: local
     access_provider: permit
   
-sssd_config_pam: yes
+sssd_authconfig_config: yes
+sssd_authconfig_nslcd_disable: yes
