@@ -33,7 +33,7 @@
   tags:
     - sssd_service
 
-- name: Install sssd package for RedHat
+- name: Install sssd package
   package:
     name: "{{ item }}"
     state: present
