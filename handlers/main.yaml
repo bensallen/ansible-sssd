@@ -2,6 +2,6 @@
 
 - name: Restart sssd
   service:
-    name: sssd
+    name: "{{ sssd_service }}"
     state: restarted
   when: not sssd_service_started.changed

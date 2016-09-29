@@ -3,13 +3,25 @@
 - name: Test distribution
   assert:
     that: >
-      ansible_os_family == "RedHat"
+      ansible_os_family == "RedHat" or
+      ansible_os_family == "Debian"
+
+- name: Set OS dependent variables
+  include_vars: "{{ item }}"
+  with_first_found:
+   - "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
+   - "{{ ansible_distribution }}.yml"
+   - "{{ ansible_os_family }}_{{ ansible_distribution_major_version }}.yml"
+   - "{{ ansible_os_family }}.yml"
+   - default.yml
 
 - name: Remove any conflicting packages
-  yum:
+  package:
     name: "{{ item }}"
     state: absent
   with_items: "{{ sssd_conflict_pkgs }}"
+  tags:
+    - sssd_pkg
 
 - name: Stop and disable conflicting services
   service:
@@ -18,11 +30,14 @@
     enabled: no
   ignore_errors: yes
   with_items: "{{ sssd_conflict_services }}"
+  tags:
+    - sssd_service
 
 - name: Install sssd package for RedHat
-  yum:
-    name: "{{ sssd_pkg }}"
+  package:
+    name: "{{ item }}"
     state: present
+  with_items: "{{ sssd_pkgs }}"
   notify:
     - Restart sssd
   tags:
@@ -42,7 +57,7 @@
 
 - name: Make sure sssd service is running
   service:
-    name: sssd
+    name: "{{ sssd_service }}"
     state: started
   register: sssd_service_started
   tags:
@@ -51,14 +66,14 @@
 
 - name: Make sure sssd service is enabled
   service:
-    name: sssd
+    name: "{{ sssd_service }}"
     enabled: yes
   tags:
     - sssd_config
 
 - block:
   - name: Ensure authconfig is installed
-    yum:
+    package:
       name: authconfig
       state: installed
 
@@ -74,5 +89,7 @@
   - name: Disable nslcd via authconfig if configured
     command: authconfig --update --disableldap --disableldapauth
     when: sssd_authconfig_nslcd_disable and (sssd_authconfig_out.stdout.find('pam_ldap is enabled') != -1 or sssd_authconfig_out.stdout.find('nss_ldap is enabled') != -1)
-
-  when: sssd_authconfig_config
+  
+  when: ansible_os_family == "RedHat" and sssd_authconfig_config
+  tags:
+    - sssd_config
