@@ -1,0 +1,16 @@
+---
+sssd_pkgs: 
+  - sssd
+  - libpam-sss
+  - libnss-sss
+  - sssd-tools
+
+sssd_service: sssd
+
+sssd_conflict_pkgs: 
+  - nslcd
+  - nscd
+
+sssd_conflict_services:
+  - nslcd
+  - nscd

@@ -1,0 +1,12 @@
+---
+sssd_pkgs: 
+  - sssd
+
+sssd_service: sssd
+
+sssd_conflict_pkgs: 
+  - nss-pam-ldapd
+
+sssd_conflict_services:
+  - nslcd
+  - nscd
